@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>金羽 · 内容后台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css?v=20260718-card-cms" />
+  </head>
+  <body>
+    <main class="app">
+      <aside class="sidebar">
+        <a class="brand" href="index.html"><span>JY</span>金羽的空间</a>
+        <nav aria-label="后台导航">
+          <button class="tab active" data-panel="notes" type="button">✦ 笔记管理</button>
+          <button class="tab" data-panel="projects" type="button">↗ 项目管理</button>
+          <a href="index.html" target="_blank" rel="noopener noreferrer">⌂ 查看网站</a>
+        </nav>
+        <div class="sync-note"><b>GitHub 自动同步</b><span>每一次保存或删除都会生成独立的内容提交。</span></div>
+      </aside>
+
+      <section class="workspace">
+        <header>
+          <div><p class="eyebrow">CONTENT DASHBOARD</p><h1>内容管理<i>。</i></h1></div>
+          <div class="profile">QK <span>已验证</span></div>
+        </header>
+        <p class="toast" id="status" aria-live="polite"></p>
+
+        <section class="panel active" id="notes">
+          <div class="panel-heading">
+            <div><h2>笔记卡片</h2><p>选择卡片即可编辑；新建、修改和删除会同步 Markdown 文件。</p></div>
+            <button class="new-button" id="new-note" type="button">+ 新建笔记</button>
+          </div>
+          <div class="manager-layout">
+            <section class="collection-panel">
+              <div class="collection-meta"><span id="note-count">0 篇笔记</span><span>点击卡片编辑</span></div>
+              <div class="item-grid" id="note-cards" aria-live="polite"></div>
+            </section>
+            <form class="editor-card" id="note-form">
+              <div class="editor-title"><div><p class="eyebrow" id="note-form-mode">新建笔记</p><h3>笔记内容</h3></div><span class="status-pill" id="note-status">草稿</span></div>
+              <label>文章标识 <input id="note-slug" required maxlength="80" placeholder="例如 caddy-deployment" pattern="[a-z0-9-]+" /></label>
+              <div class="two"><label>标题 <input id="note-title" required maxlength="120" placeholder="文章标题" /></label><label>发布日期 <input id="note-date" required type="date" /></label></div>
+              <label>摘要 <input id="note-summary" required maxlength="280" placeholder="用于笔记卡片的简短说明" /></label>
+              <label>标签 <input id="note-tags" placeholder="部署, Caddy, Docker" /></label>
+              <label>Markdown 正文 <textarea id="note-body" required rows="12" placeholder="# 从这里开始写你的笔记…"></textarea></label>
+              <label class="switch"><input id="note-draft" type="checkbox" /><span>保存为草稿（不在前台展示）</span></label>
+              <div class="form-actions"><button class="danger-button" id="delete-note" type="button" hidden>删除笔记</button><button class="save" id="save-note" type="submit">保存笔记 <span>↑</span></button></div>
+            </form>
+          </div>
+        </section>
+
+        <section class="panel" id="projects">
+          <div class="panel-heading">
+            <div><h2>项目卡片</h2><p>维护前台项目卡片的标题、链接、介绍和技术标签。</p></div>
+            <button class="new-button" id="new-project" type="button">+ 新建项目</button>
+          </div>
+          <div class="manager-layout">
+            <section class="collection-panel">
+              <div class="collection-meta"><span id="project-count">0 个项目</span><span>点击卡片编辑</span></div>
+              <div class="item-grid" id="project-cards" aria-live="polite"></div>
+            </section>
+            <form class="editor-card" id="project-form">
+              <div class="editor-title"><div><p class="eyebrow" id="project-form-mode">新建项目</p><h3>项目资料</h3></div><span class="status-pill">PROJECT</span></div>
+              <label>项目标题 <input id="project-title" required maxlength="100" placeholder="例如：个人网站内容后台" /></label>
+              <label>项目链接 <input id="project-url" required type="url" maxlength="600" placeholder="https://github.com/..." /></label>
+              <label>项目简介 <textarea id="project-summary" required rows="5" maxlength="360" placeholder="简述这个项目解决的问题、实现方式与结果。"></textarea></label>
+              <label>技术标签 <input id="project-tags" placeholder="Node.js, Docker, Caddy" /></label>
+              <div class="form-actions"><button class="danger-button" id="delete-project" type="button" hidden>删除项目</button><button class="save" id="save-project" type="submit">保存项目 <span>↑</span></button></div>
+            </form>
+          </div>
+        </section>
+      </section>
+    </main>
+    <script src="admin.js?v=20260718-card-cms"></script>
+  </body>
+</html>

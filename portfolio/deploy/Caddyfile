@@ -1,0 +1,9 @@
+greenwoods.skin {
+    encode zstd gzip
+    reverse_proxy jinyu-portfolio:3000
+}
+
+reading.greenwoods.skin {
+    encode zstd gzip
+    reverse_proxy greenforest-reading:3000
+}
