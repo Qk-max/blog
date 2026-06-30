@@ -116,21 +116,44 @@ async function removeNote() {
   try { await request(`/api/admin/notes/${encodeURIComponent(state.noteSlug)}`, { method: 'DELETE' }); await loadState(); newNote(); notify('笔记已删除，并同步到 GitHub。'); } catch (error) { notify(error.message, 'error'); }
 }
 
-document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => { document.querySelectorAll('.tab, .panel').forEach(element => element.classList.remove('active')); tab.classList.add('active'); $(tab.dataset.panel).classList.add('active'); }));
-$('new-project').addEventListener('click', newProject);
-$('new-note').addEventListener('click', newNote);
-$('project-form').addEventListener('submit', saveProject);
-$('note-form').addEventListener('submit', saveNote);
-$('delete-project').addEventListener('click', removeProject);
-$('delete-note').addEventListener('click', removeNote);
-$('note-draft').addEventListener('change', event => { $('note-status').textContent = event.target.checked ? '草稿' : '已发布'; });
+if ($('project-form')) {
+  document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => { document.querySelectorAll('.tab, .panel').forEach(element => element.classList.remove('active')); tab.classList.add('active'); $(tab.dataset.panel).classList.add('active'); }));
+  $('new-project').addEventListener('click', newProject);
+  $('new-note').addEventListener('click', newNote);
+  $('project-form').addEventListener('submit', saveProject);
+  $('note-form').addEventListener('submit', saveNote);
+  $('delete-project').addEventListener('click', removeProject);
+  $('delete-note').addEventListener('click', removeNote);
+  $('note-draft').addEventListener('change', event => { $('note-status').textContent = event.target.checked ? '草稿' : '已发布'; });
 
-(async () => {
-  try {
-    const session = await request('/api/admin/session');
-    if (!session.authenticated) return location.replace('/admin.html');
-    await loadState();
-    newNote();
-    newProject();
-  } catch { location.replace('/admin.html'); }
-})();
+  (async () => {
+    try {
+      const session = await request('/api/admin/session');
+      if (!session.authenticated) return location.replace('/admin.html');
+      await loadState();
+      newNote();
+      newProject();
+    } catch { location.replace('/admin.html'); }
+  })();
+}
+
+if ($('login')) {
+  const loginForm = $('login');
+  const message = $('login-status');
+  const loginError = new URLSearchParams(location.search).get('error');
+  if (loginError === 'password') message.textContent = '密码不正确，请重新输入。';
+  loginForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const button = loginForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    message.textContent = '正在验证…';
+    try {
+      await request('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: loginForm.password.value }) });
+      message.textContent = '验证成功，正在进入后台…';
+      location.replace('/dashboard.html');
+    } catch (error) {
+      message.textContent = error.message || '验证失败，请稍后重试。';
+    } finally { button.disabled = false; }
+  });
+  request('/api/admin/session').then(session => { if (session.authenticated) location.replace('/dashboard.html'); }).catch(() => {});
+}

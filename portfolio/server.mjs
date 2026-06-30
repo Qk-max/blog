@@ -21,6 +21,16 @@ const readJson = request => new Promise((resolve, reject) => {
   request.on('data', chunk => { raw += chunk; if (raw.length > 1_000_000) request.destroy(); });
   request.on('end', () => { try { resolve(JSON.parse(raw || '{}')); } catch { reject(new Error('JSON 格式无效')); } });
 });
+const readLogin = request => new Promise((resolve, reject) => {
+  let raw = '';
+  request.on('data', chunk => { raw += chunk; if (raw.length > 20_000) request.destroy(); });
+  request.on('end', () => {
+    try {
+      if (String(request.headers['content-type'] || '').includes('application/json')) return resolve(JSON.parse(raw || '{}'));
+      return resolve({ password: new URLSearchParams(raw).get('password') || '' });
+    } catch { reject(new Error('登录数据无效')); }
+  });
+});
 const cookies = request => Object.fromEntries((request.headers.cookie || '').split(';').map(value => value.trim().split('=').map(decodeURIComponent)).filter(value => value.length === 2));
 const sign = value => createHmac('sha256', sessionSecret || 'missing').update(value).digest('hex');
 const authed = request => {
@@ -113,13 +123,19 @@ createServer(async (request, response) => {
       return json(response, 200, { slug, ...parseNote(await readFile(notePath(slug), 'utf8')) });
     }
     if (request.method === 'POST' && url.pathname === '/api/admin/login') {
-      const { password } = await readJson(request);
+      const { password } = await readLogin(request);
       const supplied = Buffer.from(password || '');
       const expected = Buffer.from(adminPassword || '');
-      if (!adminPassword || supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return json(response, 401, { error: '密码错误' });
+      const formLogin = !String(request.headers['content-type'] || '').includes('application/json');
+      if (!adminPassword || supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) {
+        if (formLogin) { response.writeHead(303, { location: '/admin.html?error=password', ...noStore }); return response.end(); }
+        return json(response, 401, { error: '密码错误' });
+      }
       const payload = String(Date.now() + 12 * 3600_000);
       const secure = request.headers['x-forwarded-proto'] === 'https' || process.env.NODE_ENV === 'production';
-      response.setHeader('Set-Cookie', `admin_session=${payload}.${sign(payload)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${secure ? '; Secure' : ''}`);
+      const cookie = `admin_session=${payload}.${sign(payload)}; HttpOnly; SameSite=Strict; Path=/; Max-Age=43200${secure ? '; Secure' : ''}`;
+      if (formLogin) { response.writeHead(303, { location: '/dashboard.html', 'set-cookie': cookie, ...noStore }); return response.end(); }
+      response.setHeader('Set-Cookie', cookie);
       return json(response, 200, { ok: true });
     }
     if (request.method === 'GET' && url.pathname === '/api/admin/session') return json(response, 200, { authenticated: authed(request) });
