@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 const site = normalize(process.env.SITE_ROOT || fileURLToPath(new URL('.', import.meta.url)));
 const content = process.env.CONTENT_ROOT || join(site, 'content');
 const projectFile = join(content, 'projects.json');
+const noteOrderFile = join(content, 'notes-order.json');
 const token = process.env.GITHUB_TOKEN;
 const adminPassword = process.env.ADMIN_PASSWORD;
 const sessionSecret = process.env.SESSION_SECRET;
@@ -96,11 +97,34 @@ const cleanProject = (input, previous = {}) => {
   if (!/^https?:\/\//i.test(url)) throw new Error('项目链接必须以 http:// 或 https:// 开头');
   return { ...previous, title, url, summary, tags: tagList(input.tags) };
 };
+const readNoteOrder = async () => {
+  try {
+    const order = JSON.parse(await readFile(noteOrderFile, 'utf8'));
+    return Array.isArray(order) ? order.filter(safeSlug) : [];
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+};
+const saveNoteOrder = async (slugs, message) => {
+  const raw = JSON.stringify(slugs, null, 2) + '\n';
+  await github('portfolio/content/notes-order.json', raw, message);
+  await writeFile(noteOrderFile, raw);
+};
 const readNotes = async (includeDraft = false) => {
   await mkdir(join(content, 'notes'), { recursive: true });
   const files = await readdir(join(content, 'notes'));
   const list = await Promise.all(files.filter(file => file.endsWith('.md')).map(async file => ({ slug: file.slice(0, -3), ...parseNote(await readFile(join(content, 'notes', file), 'utf8')) })));
-  return list.filter(note => includeDraft || !note.draft).sort((a, b) => b.date.localeCompare(a.date));
+  const order = await readNoteOrder();
+  const position = new Map(order.map((slug, index) => [slug, index]));
+  return list.filter(note => includeDraft || !note.draft).sort((a, b) => {
+    const first = position.get(a.slug);
+    const second = position.get(b.slug);
+    if (first !== undefined && second !== undefined) return first - second;
+    if (first !== undefined) return -1;
+    if (second !== undefined) return 1;
+    return b.date.localeCompare(a.date);
+  });
 };
 const cleanNote = input => {
   const title = text(input.title, 120);
@@ -149,6 +173,16 @@ createServer(async (request, response) => {
         await saveProjects(projects, `content: add project ${project.id}`);
         return json(response, 201, project);
       }
+      if (request.method === 'PUT' && url.pathname === '/api/admin/projects/order') {
+        const { ids } = await readJson(request);
+        const projects = await readProjects();
+        if (!Array.isArray(ids) || ids.length !== projects.length || new Set(ids).size !== projects.length) return json(response, 400, { error: '项目排序数据不完整' });
+        const byId = new Map(projects.map(project => [project.id, project]));
+        if (ids.some(id => !byId.has(id))) return json(response, 400, { error: '项目排序包含未知项目' });
+        const ordered = ids.map(id => byId.get(id));
+        await saveProjects(ordered, 'content: reorder portfolio projects');
+        return json(response, 200, { projects: ordered });
+      }
       const projectMatch = url.pathname.match(/^\/api\/admin\/projects\/([\w-]+)$/);
       if (projectMatch && request.method === 'PUT') {
         const projects = await readProjects();
@@ -165,6 +199,15 @@ createServer(async (request, response) => {
         await saveProjects(projects.filter(item => item.id !== project.id), `content: remove project ${project.id}`);
         return json(response, 200, { deleted: true });
       }
+      if (request.method === 'PUT' && url.pathname === '/api/admin/notes/order') {
+        const { slugs } = await readJson(request);
+        const notes = await readNotes(true);
+        if (!Array.isArray(slugs) || slugs.length !== notes.length || new Set(slugs).size !== notes.length) return json(response, 400, { error: '笔记排序数据不完整' });
+        const known = new Set(notes.map(note => note.slug));
+        if (slugs.some(slug => !known.has(slug))) return json(response, 400, { error: '笔记排序包含未知笔记' });
+        await saveNoteOrder(slugs, 'content: reorder portfolio notes');
+        return json(response, 200, { notes: await readNotes(true) });
+      }
       if (request.method === 'PUT' && url.pathname.startsWith('/api/admin/notes/')) {
         const slug = decodeURIComponent(url.pathname.split('/').pop());
         if (!safeSlug(slug)) return json(response, 400, { error: '笔记标识只能使用小写英文、数字和连字符' });
@@ -173,6 +216,8 @@ createServer(async (request, response) => {
         await github(`portfolio/content/notes/${slug}.md`, raw, `content: update note ${slug}`);
         await mkdir(join(content, 'notes'), { recursive: true });
         await writeFile(notePath(slug), raw);
+        const order = await readNoteOrder();
+        if (!order.includes(slug)) await saveNoteOrder([slug, ...order], `content: add note to order ${slug}`);
         return json(response, 200, { slug, ...note });
       }
       if (request.method === 'DELETE' && url.pathname.startsWith('/api/admin/notes/')) {
@@ -181,6 +226,8 @@ createServer(async (request, response) => {
         try { await readFile(notePath(slug), 'utf8'); } catch { return json(response, 404, { error: '笔记不存在' }); }
         await github(`portfolio/content/notes/${slug}.md`, '', `content: remove note ${slug}`, 'DELETE');
         await unlink(notePath(slug));
+        const order = await readNoteOrder();
+        if (order.includes(slug)) await saveNoteOrder(order.filter(item => item !== slug), `content: remove note from order ${slug}`);
         return json(response, 200, { deleted: true });
       }
     }
