@@ -19,13 +19,15 @@ function notify(message, type = 'success') {
 function setBusy(button, busy) { button.disabled = busy; button.dataset.label ||= button.innerHTML; if (busy) button.textContent = '正在保存…'; else button.innerHTML = button.dataset.label; }
 function renderProjects() {
   $('project-count').textContent = `${state.projects.length} 个项目`;
-  $('project-cards').innerHTML = state.projects.map(project => `<button class="item-card project-card ${project.id === state.projectId ? 'selected' : ''}" type="button" data-project-id="${escape(project.id)}"><span class="card-symbol">↗</span><span class="card-copy"><strong>${escape(project.title)}</strong><small>${escape(project.summary)}</small><span class="tag-row">${tags(project.tags)}</span></span></button>`).join('') || '<p class="empty-state">还没有项目。点击“新建项目”创建第一张卡片。</p>';
+  $('project-cards').innerHTML = state.projects.map((project, index) => `<div class="card-stack"><button class="item-card project-card ${project.id === state.projectId ? 'selected' : ''}" type="button" data-project-id="${escape(project.id)}"><span class="card-symbol">↗</span><span class="card-copy"><strong>${escape(project.title)}</strong><small>${escape(project.summary)}</small><span class="tag-row">${tags(project.tags)}</span></span></button><div class="order-controls"><span>前台第 ${index + 1} 位</span><button type="button" data-project-move="${escape(project.id)}" data-direction="-1" ${index === 0 ? 'disabled' : ''} aria-label="项目上移">↑</button><button type="button" data-project-move="${escape(project.id)}" data-direction="1" ${index === state.projects.length - 1 ? 'disabled' : ''} aria-label="项目下移">↓</button></div></div>`).join('') || '<p class="empty-state">还没有项目。点击“新建项目”创建第一张卡片。</p>';
   document.querySelectorAll('[data-project-id]').forEach(card => card.addEventListener('click', () => selectProject(card.dataset.projectId)));
+  document.querySelectorAll('[data-project-move]').forEach(button => button.addEventListener('click', () => moveProject(button.dataset.projectMove, Number(button.dataset.direction))));
 }
 function renderNotes() {
   $('note-count').textContent = `${state.notes.length} 篇笔记`;
-  $('note-cards').innerHTML = state.notes.map(note => `<button class="item-card note-card ${note.slug === state.noteSlug ? 'selected' : ''}" type="button" data-note-slug="${escape(note.slug)}"><span class="card-date">${escape(note.date)}</span><span class="card-copy"><strong>${escape(note.title)}</strong><small>${escape(note.summary)}</small><span class="tag-row">${tags(note.tags)}</span></span><i>${note.draft ? '草稿' : '已发布'}</i></button>`).join('') || '<p class="empty-state">还没有笔记。点击“新建笔记”开始记录。</p>';
+  $('note-cards').innerHTML = state.notes.map((note, index) => `<div class="card-stack"><button class="item-card note-card ${note.slug === state.noteSlug ? 'selected' : ''}" type="button" data-note-slug="${escape(note.slug)}"><span class="card-date">${escape(note.date)}</span><span class="card-copy"><strong>${escape(note.title)}</strong><small>${escape(note.summary)}</small><span class="tag-row">${tags(note.tags)}</span></span><i>${note.draft ? '草稿' : '已发布'}</i></button><div class="order-controls"><span>前台第 ${index + 1} 位</span><button type="button" data-note-move="${escape(note.slug)}" data-direction="-1" ${index === 0 ? 'disabled' : ''} aria-label="笔记上移">↑</button><button type="button" data-note-move="${escape(note.slug)}" data-direction="1" ${index === state.notes.length - 1 ? 'disabled' : ''} aria-label="笔记下移">↓</button></div></div>`).join('') || '<p class="empty-state">还没有笔记。点击“新建笔记”开始记录。</p>';
   document.querySelectorAll('[data-note-slug]').forEach(card => card.addEventListener('click', () => selectNote(card.dataset.noteSlug)));
+  document.querySelectorAll('[data-note-move]').forEach(button => button.addEventListener('click', () => moveNote(button.dataset.noteMove, Number(button.dataset.direction))));
 }
 function newProject() {
   state.projectId = '';
@@ -92,6 +94,34 @@ async function saveProject(event) {
     selectProject(project.id);
     notify('项目已保存，并同步到 GitHub。');
   } catch (error) { notify(error.message, 'error'); } finally { setBusy(button, false); }
+}
+async function moveProject(id, direction) {
+  const index = state.projects.findIndex(project => project.id === id);
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= state.projects.length) return;
+  const previous = [...state.projects];
+  [state.projects[index], state.projects[target]] = [state.projects[target], state.projects[index]];
+  renderProjects();
+  try {
+    const result = await request('/api/admin/projects/order', { method: 'PUT', body: JSON.stringify({ ids: state.projects.map(project => project.id) }) });
+    state.projects = result.projects;
+    renderProjects();
+    notify('项目顺序已保存，并同步到 GitHub。');
+  } catch (error) { state.projects = previous; renderProjects(); notify(error.message, 'error'); }
+}
+async function moveNote(slug, direction) {
+  const index = state.notes.findIndex(note => note.slug === slug);
+  const target = index + direction;
+  if (index < 0 || target < 0 || target >= state.notes.length) return;
+  const previous = [...state.notes];
+  [state.notes[index], state.notes[target]] = [state.notes[target], state.notes[index]];
+  renderNotes();
+  try {
+    const result = await request('/api/admin/notes/order', { method: 'PUT', body: JSON.stringify({ slugs: state.notes.map(note => note.slug) }) });
+    state.notes = result.notes;
+    renderNotes();
+    notify('笔记顺序已保存，并同步到 GitHub。');
+  } catch (error) { state.notes = previous; renderNotes(); notify(error.message, 'error'); }
 }
 async function saveNote(event) {
   event.preventDefault();

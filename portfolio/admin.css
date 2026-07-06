@@ -47,6 +47,7 @@ label { display:grid; gap:7px; color:var(--deep); font:700 12px var(--fun); }
 .collection-meta { display:flex; justify-content:space-between; gap:16px; padding:1px 3px 16px; color:var(--muted); font-size:11px; }
 .collection-meta span:first-child { color:var(--deep); font:700 12px var(--fun); }
 .item-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.card-stack { min-width:0; }
 .item-card { display:flex; min-width:0; min-height:174px; padding:16px; border:1px solid var(--line); border-radius:14px; color:var(--ink); background:#f8fdff; text-align:left; transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
 .item-card:hover,.item-card.selected { border-color:var(--blue); box-shadow:3px 4px 0 #d8f1ff; transform:translateY(-2px); }
 .item-card.selected { background:#e8f8ff; }
@@ -58,6 +59,7 @@ label { display:grid; gap:7px; color:var(--deep); font:700 12px var(--fun); }
 .tag-row span { padding:3px 6px; border:1px solid #a8d9f3; border-radius:99px; color:var(--deep); background:#edfaff; font:700 9px var(--fun); }
 .note-card { position:relative; display:grid; grid-template-columns:1fr auto; gap:9px; }
 .note-card .card-date { color:var(--deep); font:700 10px var(--fun); }.note-card .card-copy { grid-column:1/-1; }.note-card i { align-self:start; padding:3px 6px; border-radius:99px; color:#8b5b56; background:var(--pink); font:700 9px var(--fun); font-style:normal; }.note-card i:not(:empty) { grid-column:2; }
+.order-controls { display:flex; align-items:center; justify-content:flex-end; gap:6px; padding:8px 2px 1px; color:var(--muted); font:700 10px var(--fun); }.order-controls span { margin-right:auto; }.order-controls button { display:grid; place-items:center; width:25px; height:24px; border:1px solid var(--line); border-radius:7px; color:var(--deep); background:#fff; font:800 14px var(--fun); }.order-controls button:hover:not(:disabled) { border-color:var(--blue); background:#e8f8ff; }.order-controls button:disabled { opacity:.35; cursor:not-allowed; }
 .project-card { align-items:flex-start; }.empty-state { grid-column:1/-1; margin:0; padding:29px 12px; color:var(--muted); text-align:center; font-size:13px; }
 
 .editor-card { position:sticky; top:24px; display:grid; gap:15px; padding:25px; }
