@@ -1,16 +1,5 @@
 [
   {
-    "id": "0b0c2f33-d7a7-42cb-8eeb-9ec98afa82ce",
-    "title": "美食汇系统",
-    "url": "https://github.com/Qk-max/foods",
-    "summary": "前后端分离，数据库设计",
-    "tags": [
-      "Vue3",
-      "Java",
-      "JavaScript，MySql"
-    ]
-  },
-  {
     "title": "股票分析与娱乐系统开发与 Web 安全加固实践",
     "url": "https://github.com/Qk-max/financial-analysis",
     "summary": "后端功能、数据库设计、部署验证与安全优化。",
@@ -21,5 +10,16 @@
       "Burp Suite"
     ],
     "id": "legacy-project-1"
+  },
+  {
+    "id": "0b0c2f33-d7a7-42cb-8eeb-9ec98afa82ce",
+    "title": "美食汇系统",
+    "url": "https://github.com/Qk-max/foods",
+    "summary": "前后端分离，数据库设计",
+    "tags": [
+      "Vue3",
+      "Java",
+      "JavaScript，MySql"
+    ]
   }
 ]
