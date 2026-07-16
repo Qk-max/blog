@@ -1,1 +1,25 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="assets/site.css"><main class="wrap section"><a class="button button-quiet" href="notes.html">← 返回笔记</a><article id="note"><p>正在加载笔记…</p></article></main><script>const s=new URLSearchParams(location.search).get('slug');fetch('/api/notes/'+encodeURIComponent(s)).then(r=>r.json()).then(n=>document.querySelector('#note').innerHTML=`<p class="eyebrow">${n.date}</p><h1>${n.title}</h1><p class="lede">${n.summary}</p><pre style="white-space:pre-wrap;line-height:1.9">${n.body.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</pre>`).catch(()=>document.querySelector('#note').textContent='笔记不存在。')</script>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content="金羽的技术笔记" />
+    <title>笔记 · 金羽</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/site.css?v=20260718-note-reader" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="site-header wrap">
+      <a class="brand" href="index.html" aria-label="金羽主页"><span class="brand-mark">JY</span><span>金羽的空间</span></a>
+      <nav class="site-nav" aria-label="主导航"><a href="index.html">首页</a><a href="about.html">关于我</a><a href="projects.html">项目</a><a href="notes.html" aria-current="page">笔记</a></nav>
+      <a class="header-link" href="notes.html">返回笔记 <span>←</span></a>
+    </header>
+    <main class="note-page wrap">
+      <article id="note" class="note-reading" aria-live="polite"><p class="note-loading">正在加载笔记…</p></article>
+    </main>
+    <script src="note.js?v=20260718-note-reader"></script>
+  </body>
+</html>
