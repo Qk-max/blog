@@ -437,26 +437,3 @@ docker logs --tail 100 your-portfolio
 
 重点检查挂载目录是否正确：静态页面应挂载到 `/app/site`，内容目录应挂载到
 `/app/content`。两者路径写错是最常见的部署错误之一。
-
-## 安全清单
-
-- [ ] 环境变量文件权限为 `600`；
-- [ ] `GITHUB_TOKEN` 只在服务器环境变量中出现；
-- [ ] GitHub Token 仅授予一个仓库的 Contents 读写权限；
-- [ ] 后台页面不被搜索引擎收录；
-- [ ] Cookie 使用 `HttpOnly`、`Secure`、`SameSite=Strict`；
-- [ ] Docker 容器只通过 Caddy 对外提供服务；
-- [ ] 每次代码变更有清晰 Git 提交；
-- [ ] 定期备份 `/opt/your-site/content/` 与私有环境文件；
-- [ ] 定期撤销不用的令牌并更换后台密码。
-
-## 下一步建议
-
-当这套方案稳定后，可以继续增加：
-
-- GitHub Actions 自动部署；
-- 图片上传与对象存储；
-- 笔记全文搜索；
-- RSS 订阅；
-- 自动备份与服务器监控；
-- 多管理员账号与更严格的权限控制。
