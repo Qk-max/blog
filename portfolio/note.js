@@ -7,7 +7,7 @@ function inline(markdown) {
   value = value.replace(/`([^`]+)`/g, '<code>$1</code>');
   value = value.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   value = value.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return value.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1 ↗</a>');
+  return value.replace(/\[([^\]]+)\]\(((?:https?:\/\/|#)[^\s)]+)\)/g, (_, label, href) => href.startsWith('#') ? `<a href="${href}">${label}</a>` : `<a href="${href}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`);
 }
 function cells(line) {
   return line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.trim());
