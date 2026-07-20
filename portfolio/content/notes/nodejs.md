@@ -1,5 +1,5 @@
 ---
-title: # Node.js 小白入门：用个人网站理解 JavaScript 后端
+title: Node.js 小白入门：用个人网站理解 JavaScript 后端
 date: 2026-07-31
 summary: Node.js部署实践心得
 tags: Node.js
