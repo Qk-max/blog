@@ -5,10 +5,6 @@ summary: Docker部署实践心得
 tags: Docker
 draft: false
 ---
-#
-
-> 本文以个人网站案例说明 Docker。示例中的密码、令牌和服务器地址都是占位符，不能把真实密钥写进镜像或 Git。
-
 ## 目录
 
 1. [Docker 解决什么问题](#docker-解决什么问题)
